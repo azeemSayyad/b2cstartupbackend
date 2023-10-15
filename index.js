@@ -2,13 +2,30 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors"
 import authRoutes from "./Routes/Auth.js"
-import { register, test } from "./Controllers/Auth.js";
 import bodyParser from 'body-parser'
+import swaggerUi from "swagger-ui-express"
+import YAML from "yaml"
+import fs from "fs"
 
 const app = express();
+const swaggerYAML = fs.readFileSync('./swagger.yaml', 'utf8'); // Read the YAML file
+  const swaggerDoc = YAML.parse(swaggerYAML);
+
+app.use("/api-docs",swaggerUi.serve,swaggerUi.setup(swaggerDoc))
 app.use(bodyParser.json({ limit: "30mb", extended: true }));
 app.use(cors());
 
+app.get("/getapi",(req,res)=>{
+  res.send("this is a string")
+})
+
+app.post('/post',(req,res)=>{
+  const object = {
+    id:1,
+    name:"azeem"
+  }
+  res.send(object);
+})
 
 // Auth routes
 app.use('/auth',authRoutes);

@@ -1,0 +1,81 @@
+swagger: "2.0"
+info:
+  title: B2c Startup backend
+  description: Contains all api's and api endpoints and their descriptions.
+  version: 1.0
+  contact: 
+    email: azeemsayyad1652@gmail.com
+  servers:
+    -url: "http://localhost:4000/"
+    description: This is a Local server
+
+schemes: [http,https]
+
+paths:
+  "/getapi":
+      get:
+        summary: This returns a string
+        description: this returns a string
+        responses: 
+          200:
+            description: success
+          400:
+            description: failed
+
+  "/post":
+    post:
+      summary: returns a object
+      description: returns a object
+      responses:
+        200:
+          description: Success
+          schema:
+            type: object
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+
+  "/auth/register":
+    post:
+      summary: register the user
+      description: It takes user attributes and will be stored in database
+      parameters:
+      - in: body
+        name: tradePerson
+        schema:
+          type: object
+          properties:
+            name:
+              type: string
+            profession:
+              type: array
+              items:
+                type: string
+            experience:
+              type: string
+            contact:
+              type: string
+            about:
+              type: string
+      responses:
+        200:
+          description: User Registered Successfully
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+              profession:
+                type: array
+                items:
+                  type: string
+              experience:
+                type: string
+              contact:
+                type: string
+              about:
+                type: string
+        400:
+          description: Error
