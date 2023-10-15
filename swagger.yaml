@@ -12,30 +12,18 @@ info:
 schemes: [http,https]
 
 paths:
-  "/getapi":
+  "/get/allTradePersons":
       get:
-        summary: This returns a string
-        description: this returns a string
+        summary: Returns All Registered TradePersons
         responses: 
           200:
             description: success
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/tradePerson"
           400:
             description: failed
-
-  "/post":
-    post:
-      summary: returns a object
-      description: returns a object
-      responses:
-        200:
-          description: Success
-          schema:
-            type: object
-            properties:
-              id:
-                type: integer
-              name:
-                type: string
 
   "/auth/register":
     post:
@@ -45,37 +33,30 @@ paths:
       - in: body
         name: tradePerson
         schema:
-          type: object
-          properties:
-            name:
-              type: string
-            profession:
-              type: array
-              items:
-                type: string
-            experience:
-              type: string
-            contact:
-              type: string
-            about:
-              type: string
+          $ref: "#/components/schemas/tradePerson"
       responses:
         200:
           description: User Registered Successfully
           schema:
-            type: object
-            properties:
-              name:
-                type: string
-              profession:
-                type: array
-                items:
-                  type: string
-              experience:
-                type: string
-              contact:
-                type: string
-              about:
-                type: string
+            $ref: "#/components/schemas/tradePerson"
         400:
           description: Error
+
+
+components:
+  schemas:
+    tradePerson:
+      type: object
+      properties:
+          name:
+            type: string
+          profession:
+            type: array
+            items:
+              type: string
+          experience:
+            type: string
+          contact:
+            type: string
+          about:
+            type: string

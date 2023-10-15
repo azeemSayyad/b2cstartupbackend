@@ -10,7 +10,7 @@ const tradePersonSchema = mongoose.Schema(
         },
         profession:{
             required:true,
-            type:String,
+            type:[],
         },
         experience:{
             required:true,
@@ -28,5 +28,5 @@ const tradePersonSchema = mongoose.Schema(
     }
 )
 
-const tradePerson = mongoose.model("tradeperson",tradePersonSchema)
-export default tradePerson
+const TradePerson = mongoose.model("tradeperson",tradePersonSchema)
+export default TradePerson
