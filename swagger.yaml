@@ -12,7 +12,7 @@ info:
 schemes: [http,https]
 
 paths:
-  "/get/allTradePersons":
+  /get/allTradePersons:
       get:
         summary: Returns All Registered TradePersons
         responses: 
@@ -25,7 +25,28 @@ paths:
           400:
             description: failed
 
-  "/auth/register":
+  /get/{trade}:
+    get:
+      summary: Returns the Array of specified Trade persons
+      description: Takes a 'trade' from the params, and returns the Array of specified Trade persons
+      parameters:
+        - name: trade
+          in: path
+          required: true
+          schema:
+            type : string
+      responses:
+        200:
+          description: Returns the Array of specified Trade persons
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/tradePerson"
+        400:
+          description: Error
+
+
+  /auth/register:
     post:
       summary: register the user
       description: It takes user attributes and will be stored in database
