@@ -18,9 +18,13 @@
   },
   "homepage": "https://github.com/azeemSayyad/b2cstartupbackend#readme",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.428.0",
+    "@aws-sdk/s3-request-presigner": "^3.428.0",
+    "aws-sdk": "^2.1473.0",
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^7.6.1",

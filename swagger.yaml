@@ -3,81 +3,310 @@ info:
   title: B2c Startup backend
   description: Contains all api's and api endpoints and their descriptions.
   version: 1.0
-  contact: 
+  contact:
     email: azeemsayyad1652@gmail.com
   servers:
-    -url: "http://localhost:4000/"
     description: This is a Local server
 
-schemes: [http,https]
+schemes: [http, https]
 
 paths:
-  /get/allTradePersons:
-      get:
-        summary: Returns All Registered TradePersons
-        responses: 
-          200:
-            description: success
-            schema:
-              type: array
-              items:
-                $ref: "#/components/schemas/tradePerson"
-          400:
-            description: failed
-
-  /get/{trade}:
+  /user/getUsers:
     get:
-      summary: Returns the Array of specified Trade persons
-      description: Takes a 'trade' from the params, and returns the Array of specified Trade persons
-      parameters:
-        - name: trade
-          in: path
-          required: true
-          schema:
-            type : string
+      summary: Returns All Registered Users
       responses:
         200:
-          description: Returns the Array of specified Trade persons
+          description: success
           schema:
             type: array
             items:
-              $ref: "#/components/schemas/tradePerson"
+              $ref: "#/components/schemas/user"
+        400:
+          description: failed
+
+  /user/getServiceProviders:
+    get:
+      summary: Returns All Registered Service Providers
+      responses:
+        200:
+          description: success
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/serviceProviderAsResponse"
+        400:
+          description: failed
+
+  /user/get/{service}:
+    get:
+      summary: Returns the Array of specified Service Providers
+      description: Takes a 'service' from the params, and returns the Array of specified Service Providers
+      parameters:
+        - name: service
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Returns the Array of specified service Providers
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/serviceProviderAsResponse"
         400:
           description: Error
 
-
-  /auth/register:
+  /auth/serviceRegistration:
     post:
-      summary: register the user
-      description: It takes user attributes and will be stored in database
+      summary: Service provider Registration
       parameters:
-      - in: body
-        name: tradePerson
-        schema:
-          $ref: "#/components/schemas/tradePerson"
+        - in: body
+          name: serviceProvider
+          schema:
+            $ref: "#/components/schemas/serviceProviderAsParams"
       responses:
         200:
           description: User Registered Successfully
           schema:
-            $ref: "#/components/schemas/tradePerson"
+            $ref: "#/components/schemas/serviceProviderAsResponse"
         400:
           description: Error
 
+  /auth/login:
+    post:
+      summary: User login
+      parameters:
+        - in: body
+          name: serviceProvider
+          schema:
+            $ref: "#/components/schemas/loginParams"
+      responses:
+        200:
+          description: User Registered Successfully
+          schema:
+            $ref: "#/components/schemas/loginResponse"
+        400:
+          description: Error
+
+  /auth/userRegistration:
+    post:
+      summary: User Registration
+      description: I'am facing some issues while making documentation for this api. What it actually does is, it takes params - image, name, contact and password, contentType-multipart/form-data. And Returns the object along with mongoID. Try this api in postman.
+
+  /auth/resetPassword/{user_id}:
+    patch:
+      summary: Reset User Password
+      description: Reset the user password with new Password
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - in: body
+        name: newPassword
+        type: object
+        properties:
+          newPassword:
+            type: string
+      responses:
+        200:
+          description: Password reset successful
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              updatedUser:
+                $ref: "#/components/schemas/user"
+
+  /user/updatePicture/{user_id}:
+    patch:
+      summary: change Profile picture
+      description: Update Profile Picture
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - in: formData
+        name: image
+        type: file
+      responses:
+        200:
+          description: Password reset successful
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              updatedUser:
+                $ref: "#/components/schemas/user"
+
+  /user/updateDetails/{serviceProvider_id}:
+    put:
+      summary: Update User Details
+      description: Update User Details
+      parameters:
+      - name: serviceProvider_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - in: body
+        name: details
+        schema:
+          $ref: "#/components/schemas/serviceProviderAsUpdateParams"
+      responses:
+        200:
+          description: update successful
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              updatedUser:
+                $ref: "#/components/schemas/serviceProviderAsResponse"
+
+  # /test:
+  # post:
+  #   summary: "Upload an Image and 'azeem' Object"
+  #   consumes:
+  #     - multipart/form-data
+  #   parameters:
+  #     - name: image
+  #       in: formData
+  #       type: file
+  #       description: "Image to upload"
+  #     - name: name
+  #       in: formData
+  #       type: string
+  #       description: "An object with the name 'azeem'"
+  #   responses:
+  #     200:
+  #       description: "Image and 'azeem' object uploaded successfully"
 
 components:
   schemas:
-    tradePerson:
+    serviceProvider:
       type: object
       properties:
-          name:
+        profession:
+          type: array
+          items:
             type: string
-          profession:
-            type: array
-            items:
+        experience:
+          type: string
+        about:
+          type: string
+        location:
+          type: string
+
+    serviceProviderAsParams:
+      type: object
+      properties:
+        user_id:
+          type: string
+        profession:
+          type: array
+          items:
+            type: string
+        experience:
+          type: string
+        about:
+          type: string
+        location:
+          type: string
+
+    serviceProviderAsUpdateParams:
+      type: object
+      properties:
+        name:
+          type: string
+        profession:
+          type: array
+          items:
+            type: string
+        experience:
+          type: string
+        about:
+          type: string
+        location:
+          type: string
+
+    serviceProviderAsResponse:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        profession:
+          type: array
+          items:
+            type: string
+        experience:
+          type: string
+        profilePicture:
+          type: string
+        contact:
+          type: string
+        user_id:
+          type: string
+        about:
+          type: string
+        gallery:
+          type: array
+          items:
+            type: string
+        location:
+          type: string
+        notification:
+          type: array
+          items:
+            type: string
+
+    loginParams:
+      type: object
+      properties:
+        contact:
+          type: string
+        password:
+          type: string
+
+    user:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        contact:
+          type: string
+        password:
+          type: string
+        profilePicture:
+          type: string
+
+    loginResponse:
+      type: object
+      properties:
+        user:
+          type: object
+          properties:
+            _id:
               type: string
-          experience:
-            type: string
-          contact:
-            type: string
-          about:
-            type: string
+            name:
+              type: string
+            contact:
+              type: string
+            profilePicture:
+              type: string
+            password:
+              type: string
+        token:
+          type: string
+        profilePictureURL:
+          type: string
