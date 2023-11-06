@@ -14,14 +14,13 @@ import fs from "fs";
 
 import {
   S3Client,
-  PutObjectCommand,
-  GetObjectCommand,
 } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 import ServiceProvider from "./Models/serviceProvider.js";
 import { updatePicture } from "./Controllers/user.js";
 import { verifyToken } from "./Middleware/auth.js";
+import { serviceRegistration } from "./Controllers/Auth.js";
+import { handleFeedback } from "./Controllers/feedback.js";
 
 dotenv.config();
 const storage = multer.memoryStorage();
@@ -49,85 +48,89 @@ app.use(bodyParser.json({ limit: "30mb", extended: true }));
 app.use(cors());
 
 // routes
-app.use("/auth", upload.single("image"), authRoutes);
+app.use("/auth",authRoutes);
+app.use("/auth/serviceRegistration",upload.array('images'),serviceRegistration);
 app.use("/user", userRoutes);
+app.post("/feedback/:user_id",handleFeedback);
 
 // Update profile picture Route
-app.patch('/user/updatePicture/:user_id',upload.single('image'),verifyToken,updatePicture);
-app.get("/get", async (req, res) => {
-  try {
-    const getObjectParams = {
-      Bucket: bucketName,
-      Key: "carousel_4.jpg",
-    };
+app.patch('/user/updatePicture/:user_id',upload.single('image'),updatePicture);
 
-    const command = new GetObjectCommand(getObjectParams);
-    const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
-    console.log(url);
-    res.send(200).json(url);
-  } catch (error) {
-    console.log(error);
-  }
-});
 
-app.post("/post", upload.single("image"), async (req, res) => {
-  try {
-    console.log(req.file.originalname);
-    const params = {
-      Bucket: bucketName,
-      Key: req.file.originalname,
-      Body: req.file.buffer,
-      ContentType: req.file.mimetype,
-    };
-    const command = new PutObjectCommand(params);
-    const resp = await s3.send(command);
-    res.status(200).send(resp);
-  } catch (error) {
-    console.log(error);
-  }
-});
+// app.get("/get", async (req, res) => {
+//   try {
+//     const getObjectParams = {
+//       Bucket: bucketName,
+//       Key: "carousel_4.jpg",
+//     };
 
-app.post("/register", upload.single("image"), async (req, res) => {
-  try {
-    // here we are getting the attributes of a trade person from the request body
-    const { name, profession, experience, about, contact } = req.body;
+//     const command = new GetObjectCommand(getObjectParams);
+//     const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
+//     console.log(url);
+//     res.send(200).json(url);
+//   } catch (error) {
+//     console.log(error);
+//   }
+// });
 
-    const img = req.file.originalname;
-    const currentDateTime = new Date().toISOString().replace(/:/g, "-"); // Format as 'YYYY-MM-DDTHH-MM-SS'
+// app.post("/post", upload.single("image"), async (req, res) => {
+//   try {
+//     console.log(req.file.originalname);
+//     const params = {
+//       Bucket: bucketName,
+//       Key: req.file.originalname,
+//       Body: req.file.buffer,
+//       ContentType: req.file.mimetype,
+//     };
+//     const command = new PutObjectCommand(params);
+//     const resp = await s3.send(command);
+//     res.status(200).send(resp);
+//   } catch (error) {
+//     console.log(error);
+//   }
+// });
 
-    // Create a unique file name by appending the timestamp
-    const uniqueFileName = `${img}_${currentDateTime}`;
+// app.post("/register", upload.single("image"), async (req, res) => {
+//   try {
+//     // here we are getting the attributes of a trade person from the request body
+//     const { name, profession, experience, about, contact } = req.body;
 
-    const putParams = {
-      Bucket: bucketName,
-      Key: uniqueFileName,
-      Body: req.file.buffer,
-      ContentType: req.file.mimeType,
-    };
+//     const img = req.file.originalname;
+//     const currentDateTime = new Date().toISOString().replace(/:/g, "-"); // Format as 'YYYY-MM-DDTHH-MM-SS'
 
-    const putCommand = new PutObjectCommand(putParams);
-    await s3.send(putCommand);
+//     // Create a unique file name by appending the timestamp
+//     const uniqueFileName = `${img}_${currentDateTime}`;
 
-    let object = new ServiceProvider({
-      name,
-      profession,
-      experience,
-      contact,
-      about,
-      rating: 0,
-      profilePicture: uniqueFileName,
-      gallery: [],
-      saved: [],
-      notifications: [],
-    });
-    let resp = await object.save();
+//     const putParams = {
+//       Bucket: bucketName,
+//       Key: uniqueFileName,
+//       Body: req.file.buffer,
+//       ContentType: req.file.mimeType,
+//     };
 
-    res.status(200).json(resp);
-  } catch (error) {
-    console.log(error);
-    res.status(400).json(error);
-  }
-});
+//     const putCommand = new PutObjectCommand(putParams);
+//     await s3.send(putCommand);
+
+//     let object = new ServiceProvider({
+//       name,
+//       profession,
+//       experience,
+//       contact,
+//       about,
+//       rating: 0,
+//       profilePicture: uniqueFileName,
+//       gallery: [],
+//       saved: [],
+//       notifications: [],
+//     });
+//     let resp = await object.save();
+
+//     res.status(200).json(resp);
+//   } catch (error) {
+//     console.log(error);
+//     res.status(400).json(error);
+//   }
+// });
 
 
 mongoose

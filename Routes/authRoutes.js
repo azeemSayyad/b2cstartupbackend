@@ -3,10 +3,10 @@ import {  forgotPassword, login,  serviceRegistration, userRegistration } from '
 
 const router = express.Router();
 
-router.post('/serviceRegistration',serviceRegistration);
+// router.post('/serviceRegistration',serviceRegistration);
 router.post('/userRegistration',userRegistration);
 router.post('/login',login);
 
-router.patch('/resetPassword/:user_id',forgotPassword)
+router.patch('/resetPassword/:contact',forgotPassword)
 
 export default router;

@@ -17,8 +17,8 @@ const schema = mongoose.Schema({
     },
     profilePicture:{
         type:String,
-        required:true
-    }
+    },
+    saved:[]
 })
 
 const User = mongoose.model("User",schema);

@@ -2,12 +2,7 @@ import mongoose from "mongoose";
 
 const ServiceProviderSchema = mongoose.Schema(
     {
-        name:{
-            required:true,
-            type:String,
-            min:3,
-            max:20
-        },
+        name:String,
         profession:{
             required:true,
             type:[],
@@ -22,7 +17,6 @@ const ServiceProviderSchema = mongoose.Schema(
         about:String,
         gallery:[],
         location: String,
-        notifications:[]
     }
 )
 

@@ -9,6 +9,8 @@ dotenv.config();
 import jwt from "jsonwebtoken";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import User from "../Models/User.js";
+import sharp from "sharp";
+import { Upload } from "@aws-sdk/lib-storage";
 
 const secreteAccesskey = process.env.SECRETE_ACCESS_KEY;
 const accessKeyId = process.env.ACCESS_KEY_ID;
@@ -23,31 +25,76 @@ const s3 = new S3Client({
   region: bucketRegion,
 });
 
+const uploadToS3 = async (files) => {
+  const uploadedImagePaths = [];
+  const uploadPromises = files.map(async (file) => {
+    const imageName = file.originalname;
+
+    const imageBuffer = await sharp(file.buffer)
+      .jpeg({ quality: 80 })
+      .withMetadata()
+      .toBuffer();
+
+    const currentDateTime = new Date().toISOString().replace(/:/g, "-");
+    const uniqueFileName = `${imageName}_${currentDateTime}`;
+    uploadedImagePaths.push(uniqueFileName);
+
+    const upload = new Upload({
+      client: s3,
+      params: {
+        Bucket: bucketName,
+        Key: uniqueFileName,
+        Body: imageBuffer,
+      },
+    });
+
+    return upload.done();
+  });
+
+  try {
+    const uploadResponses = await Promise.all(uploadPromises);
+    console.log(uploadedImagePaths);
+    return uploadedImagePaths;
+  } catch (error) {
+    console.error("Error uploading images to S3:", error);
+    throw error;
+  }
+};
+
 export const serviceRegistration = async (req, res) => {
   try {
     // here we are getting the attributes of a trade person from the request body
     const { profession, experience, about, user_id, location } = req.body;
+    const professionArray = JSON.parse(profession);
 
-    const serviceProvider = await ServiceProvider.findOne({ user_id: user_id });
+    // const serviceProvider = await ServiceProvider.findOne({ user_id: user_id });
     const user = await User.findOne({ _id: user_id });
-    if (serviceProvider) {
-      return res.status(403).json({ message: "you have Already Registered" });
-    }
+    // console.log(user,user_id);
+    // if (serviceProvider) {
+    //   return res.status(403).json({ message: "you have Already Registered" });
+    // }
+    const professionList = professionArray.map((str) => str.toLowerCase());
+
+    const uploadedImagePaths = await uploadToS3(req.files);
 
     let object = new ServiceProvider({
       name: user.name,
-      profession,
+      profession: professionList,
       experience,
       contact: user.contact,
       profilePicture: user.profilePicture,
       user_id,
       location,
       about,
-      gallery: [],
+      gallery: uploadedImagePaths,
     });
-    let resp = await object.save();
+    await object.save();
 
-    res.status(200).json(resp);
+    
+    const userServiceList = await ServiceProvider.find({ user_id: user_id });
+    console.log(userServiceList)
+
+    res.status(200).json(userServiceList);
   } catch (error) {
     console.log(error);
     res.status(400).json(error);
@@ -63,34 +110,18 @@ export const userRegistration = async (req, res) => {
     if (user) {
       return res
         .status(403)
-        .json({ message: "User Already Exist, please Log in to Continue" });
+        .json({ message: "User Already Exist, please Sign in to Continue" });
     }
-
-    const img = req.file.originalname;
-    const currentDateTime = new Date().toISOString().replace(/:/g, "-"); // Format as 'YYYY-MM-DDTHH-MM-SS'
-
-    // Create a unique file name by appending the timestamp
-    const uniqueFileName = `${img}_${currentDateTime}`;
 
     let object = new User({
       name,
       contact,
       password,
-      profilePicture: uniqueFileName,
+      profilePicture: null,
       saved: [],
       notifications: [],
     });
     let resp = await object.save();
-
-    const putParams = {
-      Bucket: bucketName,
-      Key: uniqueFileName,
-      Body: req.file.buffer,
-      ContentType: req.file.mimeType,
-    };
-
-    const putCommand = new PutObjectCommand(putParams);
-    await s3.send(putCommand);
 
     res.status(200).json(resp);
   } catch (error) {
@@ -102,8 +133,10 @@ export const userRegistration = async (req, res) => {
 export const login = async (req, res) => {
   try {
     const { contact, password } = req.body;
+    console.log();
 
     const user = await User.findOne({ contact: contact });
+    console.log(user);
     if (!user) {
       return res.status(403).json({ message: "User Not Exist" });
     }
@@ -112,32 +145,26 @@ export const login = async (req, res) => {
       return res.status(403).json({ message: "Invalid Password" });
     }
 
-    //to access profile picture stored in s3
-    const getParams = {
-      Bucket: bucketName,
-      Key: user.profilePicture,
-    };
+    const user_id = user._id;
 
-    const getCommand = new GetObjectCommand(getParams);
-    const url = await getSignedUrl(s3, getCommand, { expiresIn: 3600 });
+    const userServiceList = await ServiceProvider.find({ user_id: user_id });
 
     const token = jwt.sign({ id: contact }, process.env.JWT_SECRETE_KEY);
 
-    console.log(url);
-    res.status(200).json({ user, token, profilePictureURL: url });
+    res.status(200).json({ user, token, userServiceList });
   } catch (error) {
     console.log(error);
-    res.status(400).json({ error });
+    res.status(400).json(error);
   }
 };
 
 export const forgotPassword = async (req, res) => {
   try {
-    const { user_id } = req.params;
+    const { contact } = req.params;
     const { newPassword } = req.body;
 
-    const updatedUser = await User.findByIdAndUpdate(
-      user_id,
+    const updatedUser = await User.findOneAndUpdate(
+      { contact: contact },
       { $set: { password: newPassword } },
       { new: true }
     );
@@ -146,6 +173,6 @@ export const forgotPassword = async (req, res) => {
       .json({ message: " password reset successful", updatedUser });
   } catch (error) {
     console.log(error);
-    res.status(400).json(error)
+    res.status(400).json(error);
   }
 };

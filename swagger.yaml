@@ -92,14 +92,14 @@ paths:
   /auth/userRegistration:
     post:
       summary: User Registration
-      description: I'am facing some issues while making documentation for this api. What it actually does is, it takes params - image, name, contact and password, contentType-multipart/form-data. And Returns the object along with mongoID. Try this api in postman.
+      description: I'am facing some issues while making documentation for this api. What it actually does is, it takes params -  name, contact and password. And Returns the object along with mongoID. Try this api in postman.
 
-  /auth/resetPassword/{user_id}:
+  /auth/resetPassword/{contact}:
     patch:
       summary: Reset User Password
       description: Reset the user password with new Password
       parameters:
-      - name: user_id
+      - name: contact
         in: path
         required: true
         schema:
@@ -169,6 +169,31 @@ paths:
                 type: string
               updatedUser:
                 $ref: "#/components/schemas/serviceProviderAsResponse"
+
+  /user/updateName/{user_id}:
+    patch:
+      summary: Update User Name
+      description: Update User Name
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - in: body
+        name: updatedName
+        schema:
+          type: string
+      responses:
+        200:
+          description: update successful
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              updatedUser:
+                $ref: "#/components/schemas/user"
 
   # /test:
   # post:
